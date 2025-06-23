@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import { assets } from '../assets/assets'
+import  axios from 'axios'
+import { backendUrl } from '../App'
+import { toast } from 'react-toastify'
 
-const Add = () => {
+const Add = ({token}) => {
 
     const [image1,setImage1]=useState(false)
     const [image2,setImage2]=useState(false)
@@ -17,8 +20,48 @@ const Add = () => {
     const [bestseller,setBestseller]=useState(false)
     const [sizes,setSizes]=useState([])
 
+    const onSubmitHandler= async (e)=> {
+        e.preventDefault();      
+
+        try {
+
+            const formData= new FormData()
+
+            formData.append("name",name)
+        formData.append("description",description)
+        formData.append("price",price)
+        formData.append("category",category)
+        formData.append("subCategory",subCategory)
+        formData.append("bestseller",bestseller)
+        formData.append("sizes",JSON.stringify(sizes))
+
+        image1 && formData.append("image1",image1) 
+        image2 && formData.append("image2",image2) 
+        image3 && formData.append("image3",image3) 
+        image4 && formData.append("image4",image4) 
+        
+        const response = await axios.post(backendUrl + "/api/product/add", formData, {headers:{token}})
+        if (response.data.success) {
+            toast.success(response.data.message)
+            setName("")
+            setDescription("")
+            setImage1(false)
+            setImage2(false)
+            setImage3(false)
+            setImage4(false)
+            setPrice("")
+        }else{
+            toast.error(response.data.message)
+        }
+            
+        } catch (error) {
+            console.log(error);
+            toast.error(error.message)
+        }
+    }
+
   return (
-    <form className='fex flex-xol w-full items-start gap-3'>
+    <form onSubmit={onSubmitHandler} className='fex flex-xol w-full items-start gap-3'>
         <div>
             <p className='mb-2'>Upload Image</p>
 
@@ -101,7 +144,7 @@ const Add = () => {
         </div>
 
         <div className='flex gap-2 mt-2'>
-            <input type="checkbox" id="bestseller" />
+            <input onChange={()=> setBestseller(prev=>!prev)} checked={bestseller} type="checkbox" id="bestseller" />
             <label className='cursor-pointer' htmlFor="bestseller">Add to bestseller</label>
         </div>
         <button className='w-28 py-3 mt-4 bg-black text-white' type="submit">Add</button>
