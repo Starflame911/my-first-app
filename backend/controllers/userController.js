@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 import userModel from "../models/userModel.js"
 
 
-const createToken = (id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET)
+const createToken = (id, name)=>{
+    return jwt.sign({id,name},process.env.JWT_SECRET)
 }
 
 //route for user login
@@ -22,7 +22,7 @@ const loginUser = async (req, res) => {
         const isMatch = await bcrypt.compare(password,user.password)
 
         if(isMatch){
-            const token= createToken(user._id)
+            const token= createToken(user._id, user.name)
             res.json({success:true,token})
         }
         else{
@@ -66,7 +66,7 @@ const registerUser = async (req, res) => {
 
         const user = await newUser.save();
 
-        const token = createToken(user._id)
+        const token = createToken(user._id, user.name)
 
         res.json({success:true, token})
 
