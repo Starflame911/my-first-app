@@ -10,15 +10,14 @@ import orderRouter from './routes/orderRoute.js'
 
 //app config
 const app =express()
+app.use(cors());
+
 const port = process.env.port || 4000
 connectDB()
 connectCloudinary()
 
 //middlewares
 app.use(express.json())
-app.use(cors({
-    origin : process.env.CORS_ALLOW_URL,
-}))
 
 //api endpoints
 app.use('/api/user', userRouter)
