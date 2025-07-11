@@ -10,9 +10,22 @@ import orderRouter from './routes/orderRoute.js'
 
 //app config
 const app =express()
-app.use(cors());
-
 const port = process.env.port || 4000
+
+const allowedOrigins = process.env.CORS_ALLOW_URL.split(',');
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
+  credentials: true
+}));
+
 connectDB()
 connectCloudinary()
 
