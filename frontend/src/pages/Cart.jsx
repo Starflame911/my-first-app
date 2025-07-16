@@ -4,11 +4,12 @@ import Title from '../components/Title';
 import { assets } from '../assets/assets';
 import CartTotal from '../components/CartTotal';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import axios from 'axios';
 
 const Cart = () => {
-  const { products, currency, cartItems, updateQuantity, navigate } = useContext(ShopContext);
-
+  const { cartItems, currency, updateQuantity, navigate, backendUrl } = useContext(ShopContext);
   const [cartData, setCartData] = useState([]);
+  const [productMap, setProductMap] = useState({});
 
   useEffect(() => {
     const tempData = [];
@@ -18,7 +19,7 @@ const Cart = () => {
           tempData.push({
             _id: items,
             size: item,
-            quantity: cartItems[items][item]
+            quantity: cartItems[items][item],
           });
         }
       }
@@ -26,9 +27,32 @@ const Cart = () => {
     setCartData(tempData);
   }, [cartItems]);
 
+  // Fetch actual product details for items in cart
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (cartData.length === 0) return;
+
+      try {
+        const ids = cartData.map(item => item._id).join(',');
+        const res = await axios.get(`${backendUrl}/api/product/bulk?ids=${ids}`);
+        const products = res.data.products;
+
+        const productMap = {};
+        products.forEach(p => {
+          productMap[p._id] = p;
+        });
+
+        setProductMap(productMap);
+      } catch (error) {
+        console.error('Error fetching products for cart:', error);
+      }
+    };
+
+    fetchProducts();
+  }, [cartData, backendUrl]);
+
   return (
     <div className='border-t pt-14'>
-
       {cartData.length === 0 ? (
         <div className='flex flex-col items-center justify-center text-center py-20 px-4'>
           <div className='w-[300px] sm:w-[450px] mb-6'>
@@ -36,7 +60,7 @@ const Cart = () => {
               src="https://lottie.host/b6a056a0-2bfc-4bc6-9524-57755a6a3e25/IKh4ibPUY4.lottie"
               loop
               autoplay
-              style={{ width: '100%', height:'100%' }}
+              style={{ width: '100%', height: '100%' }}
             />
           </div>
           <p className='text-lg text-gray-600 mb-4'>Your cart is empty</p>
@@ -49,12 +73,14 @@ const Cart = () => {
         </div>
       ) : (
         <>
-      <div className='text-2xl mc-3'>
-        <Title text1={'YOUR'} text2={'CART'} />
-      </div>
+          <div className='text-2xl mc-3'>
+            <Title text1={'YOUR'} text2={'CART'} />
+          </div>
           <div>
             {cartData.map((item, index) => {
-              const productData = products.find((product) => product._id === item._id);
+              const productData = productMap[item._id];
+              if (!productData) return null; // avoid blank if product not yet fetched
+
               return (
                 <div
                   key={index}
@@ -65,10 +91,7 @@ const Cart = () => {
                     <div>
                       <p className='text-xs sm:text-lg font-medium'>{productData.name}</p>
                       <div className='flex items-center gap-5 mt-2'>
-                        <p>
-                          {currency}
-                          {productData.price}
-                        </p>
+                        <p>{currency}{productData.price}</p>
                         <p className='px-2 sm:px-3 sm:py-1 border bg-slate-50'>{item.size}</p>
                       </div>
                     </div>
@@ -97,7 +120,7 @@ const Cart = () => {
 
           <div className='flex justify-end my-20'>
             <div className='w-full sm:w-[450px]'>
-              <CartTotal />
+              <CartTotal cartData={cartData} productMap={productMap} />
               <div className='w-full text-end'>
                 <button
                   onClick={() => navigate('/place-order')}
