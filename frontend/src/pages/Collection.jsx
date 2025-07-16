@@ -31,7 +31,7 @@ const Collection = () => {
     if (showSearch && search) queryParams.append('search', search);
 
     try {
-      const res = await fetch(`/api/product/filter?${queryParams.toString()}`);
+      const res = await fetch(`${backendUrl}/api/product/filter?${queryParams.toString()}`);
       const data = await res.json();
 
       if (reset) {
