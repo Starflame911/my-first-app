@@ -2,6 +2,9 @@ import React, { useContext, useEffect, useState } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import Title from './Title';
 import ProductItem from './ProductItem';
+import axios from 'axios';
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 
 const LatestCollection = () => {
@@ -9,9 +12,22 @@ const LatestCollection = () => {
     const {products}=useContext(ShopContext);
     const [latestProducts, setLatestProducts]= useState([]);
 
-    useEffect(()=>{
-     setLatestProducts(products.slice(0,10)) ;
-    },[products])
+    // useEffect(()=>{
+    //  setLatestProducts(products.slice(0,10)) ;
+    // },[products])
+
+    useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await axios.get(`${backendUrl}/api/product/filter?page=1&limit=10&sort=latest`);
+        setLatestProducts(res.data.products);
+      } catch (err) {
+        console.error('Failed to fetch latest products:', err);
+      }
+    };
+
+    fetchLatest();
+  }, []);
 
   return (
     <div className='my-10'>

@@ -88,4 +88,64 @@ const singleProduct = async (req, res)=>{
     }
 }
 
-export {addProduct,listProducts,removeProduct,singleProduct}
+// GET /api/product/filter
+const filterProducts = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const { category, subCategory, sort, search } = req.query;
+    const query = {};
+
+    // Search by name (case-insensitive)
+    if (search?.trim()) {
+      query.name = { $regex: search.trim(), $options: 'i' };
+    }
+
+    // Normalize category to array
+    const categories = category
+      ? Array.isArray(category)
+        ? category
+        : [category]
+      : [];
+
+    if (categories.length > 0) {
+      query.category = { $in: categories };
+    }
+
+    // Normalize subCategory to array
+    const subCategories = subCategory
+      ? Array.isArray(subCategory)
+        ? subCategory
+        : [subCategory]
+      : [];
+
+    if (subCategories.length > 0) {
+      query.subCategory = { $in: subCategories };
+    }
+
+    // Sorting
+    const sortQuery = {};
+    if (sort === 'low-high') {
+      sortQuery.price = 1;
+    } else if (sort === 'high-low') {
+      sortQuery.price = -1;
+    }
+
+    const products = await productModel
+      .find(query)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({ products });
+  } catch (err) {
+    console.error('Error filtering products:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
+
+export {addProduct,listProducts,removeProduct,singleProduct, filterProducts}
