@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useContext } from 'react';
 import { assets } from '../assets/assets';
 import Title from '../components/Title';
 import ProductItem from '../components/ProductItem';
+import { backendUrl } from '../App'; 
 import { ShopContext } from '../context/ShopContext'; // ✅ Added
 
 const Collection = () => {
@@ -30,7 +31,7 @@ const Collection = () => {
     if (showSearch && search) queryParams.append('search', search);
 
     try {
-      const res = await fetch(`/api/product/filter?${queryParams.toString()}`);
+      const res = await fetch(`${backendUrl}/api/product/filter?${queryParams.toString()}`);
       const data = await res.json();
 
       if (reset) {
