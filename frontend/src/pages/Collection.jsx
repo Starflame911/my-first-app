@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useContext } from 'react';
 import { assets } from '../assets/assets';
 import Title from '../components/Title';
 import ProductItem from '../components/ProductItem';
-import { backendUrl } from '../../../admin/src/App';
+import { backendUrl } from '../App'; 
 import { ShopContext } from '../context/ShopContext'; // ✅ Added
 
 const Collection = () => {
